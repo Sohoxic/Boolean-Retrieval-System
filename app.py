@@ -47,21 +47,38 @@ def build_inverted_index(docs):
 
 # Function to handle phrase queries and basic Boolean logic
 def search(query, inverted_index, docs):
-    # Add logic here for handling complex queries if needed
-    # For now, we'll focus on phrase queries
-    if '"' in query:
-        phrase = re.findall('"([^"]*)"', query)[0]
-        phrase_words = [stemmer.stem(word) for word in word_tokenize(phrase.lower())]
-        candidate_docs = set.intersection(*(inverted_index[word] for word in phrase_words if word in inverted_index))
-        final_docs = []
-        for doc_id in candidate_docs:
-            text = docs[doc_id].lower()
-            if all(word in text for word in phrase_words):
-                final_docs.append(doc_id)
-        return final_docs
-    else:
-        # Basic Boolean logic (AND, OR, NOT) handling could be added here
-        pass
+    query = query.lower()
+    words = word_tokenize(query)
+    op = None
+    if 'and' in words:
+        op = 'and'
+    elif 'or' in words:
+        op = 'or'
+    elif 'not' in words:
+        op = 'not'
+
+    if op:  # If there's an operator in the query, split it based on the operator.
+        parts = query.split(op)
+        left = [stemmer.stem(word) for word in word_tokenize(parts[0]) if word.isalnum()]
+        right = [stemmer.stem(word) for word in word_tokenize(parts[1]) if word.isalnum()] if len(parts) > 1 else []
+
+        left_docs = set.intersection(*(inverted_index.get(word, set()) for word in left))
+        right_docs = set.intersection(*(inverted_index.get(word, set()) for word in right)) if right else set()
+
+        if op == 'and':
+            final_docs = left_docs & right_docs
+        elif op == 'or':
+            final_docs = left_docs | right_docs
+        elif op == 'not':
+            final_docs = left_docs - right_docs
+    else:  # Handle as a single word or unrecognized format query
+        stemmed_words = [stemmer.stem(word) for word in words]
+        final_docs = set.union(*(inverted_index.get(word, set()) for word in stemmed_words))
+
+    return final_docs
+
+
+
 
 # Building the inverted index
 inverted_index = build_inverted_index(documents)
