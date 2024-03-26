@@ -24,7 +24,7 @@ This Boolean Retrieval System provides a simple yet powerful way to search throu
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/yourusername/boolean-retrieval-system.git
+   git clone git@github.com:Sohoxic/Boolean-Retrieval-System.git
    cd boolean-retrieval-system
    ```
 
